@@ -1705,7 +1705,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Service Worker
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/diario-alcol/sw.js', { scope: '/diario-alcol/' })
+    navigator.serviceWorker.register('/drinking-diary/sw.js', { scope: '/drinking-diary/' })
       .catch(() => {});
   }
 });
