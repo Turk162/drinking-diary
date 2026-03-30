@@ -1,5 +1,5 @@
-const CACHE_NAME = 'diario-alcol-v1';
-const BASE_PATH = '/diario-alcol/';
+const CACHE_NAME = 'drinking-diary-v1';
+const BASE_PATH = '/drinking-diary/';
 
 // Install
 self.addEventListener('install', event => {
