@@ -771,6 +771,50 @@
     }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+    /* ── INSTALL BANNER ── */
+    .install-banner {
+      margin: 0 20px 12px;
+      background: linear-gradient(135deg, var(--plum) 0%, var(--plum-light) 100%);
+      border-radius: 16px;
+      padding: 14px 16px;
+      color: white;
+      display: none;
+      gap: 12px;
+      align-items: flex-start;
+      box-shadow: 0 4px 16px rgba(93,78,109,0.3);
+      animation: fadeIn 0.4s ease both;
+    }
+    .install-banner.visible { display: flex; }
+    .install-banner-icon { font-size: 26px; flex-shrink: 0; margin-top: 1px; }
+    .install-banner-body { flex: 1; }
+    .install-banner-title { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+    .install-banner-text { font-size: 12px; opacity: 0.85; line-height: 1.4; }
+    .install-banner-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .btn-install {
+      background: white;
+      color: var(--plum);
+      border: none;
+      border-radius: 20px;
+      padding: 7px 16px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-dismiss {
+      background: transparent;
+      color: rgba(255,255,255,0.7);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 20px;
+      padding: 7px 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    /* iOS instructions */
+    .ios-steps { margin-top: 6px; }
+    .ios-step { font-size: 12px; opacity: 0.9; margin-bottom: 3px; }
+
     /* ── ANIMATIONS ── */
     @keyframes fadeInDown {
       from { opacity: 0; transform: translateY(-12px); }
@@ -796,6 +840,16 @@
     </div>
     <div class="current-date" id="currentDate"></div>
   </header>
+
+  <!-- INSTALL BANNER -->
+  <div class="install-banner" id="installBanner">
+    <div class="install-banner-icon">📲</div>
+    <div class="install-banner-body">
+      <div class="install-banner-title" id="installTitle">Installa l'app</div>
+      <div class="install-banner-text" id="installText"></div>
+      <div class="install-banner-actions" id="installActions"></div>
+    </div>
+  </div>
 
   <!-- HOME VIEW -->
   <div id="homeView" class="view active">
@@ -1669,6 +1723,56 @@ async function sendToTherapist() {
 }
 
 // ═══════════════════════════════════════════════════════
+// INSTALL BANNER
+// ═══════════════════════════════════════════════════════
+
+let deferredPrompt = null;
+
+function setupInstallBanner() {
+  const banner = document.getElementById('installBanner');
+  const text = document.getElementById('installText');
+  const actions = document.getElementById('installActions');
+
+  // Se già installata come PWA, non mostrare nulla
+  if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) return;
+
+  // Se già dismesso in questa sessione, non mostrare
+  if (sessionStorage.getItem('installDismissed')) return;
+
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+  if (isIOS) {
+    // iOS: istruzioni manuali (non supporta beforeinstallprompt)
+    text.innerHTML = `Per installare sul tuo iPhone:<div class="ios-steps"><div class="ios-step">1. Tocca l'icona <strong>Condividi</strong> in basso (□↑)</div><div class="ios-step">2. Scorri e tocca <strong>"Aggiungi a schermata Home"</strong></div><div class="ios-step">3. Tocca <strong>Aggiungi</strong> in alto a destra</div></div>`;
+    actions.innerHTML = `<button class="btn-dismiss" onclick="dismissBanner()">Ho capito</button>`;
+    banner.classList.add('visible');
+  } else {
+    // Android/Chrome: aspetta evento beforeinstallprompt
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      deferredPrompt = e;
+      text.textContent = 'Aggiungila alla schermata Home per usarla come un\'app vera, anche senza internet.';
+      actions.innerHTML = `<button class="btn-install" onclick="triggerInstall()">Installa</button><button class="btn-dismiss" onclick="dismissBanner()">Non ora</button>`;
+      banner.classList.add('visible');
+    });
+  }
+}
+
+function triggerInstall() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => {
+    deferredPrompt = null;
+    dismissBanner();
+  });
+}
+
+function dismissBanner() {
+  document.getElementById('installBanner').classList.remove('visible');
+  sessionStorage.setItem('installDismissed', '1');
+}
+
+// ═══════════════════════════════════════════════════════
 // TOAST
 // ═══════════════════════════════════════════════════════
 
@@ -1702,6 +1806,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.target.id === id) closeModal(id);
     });
   });
+
+  // Install banner
+  setupInstallBanner();
 
   // Service Worker
   if ('serviceWorker' in navigator) {
