@@ -1,0 +1,1714 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#5D4E6D">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Diario Alcol">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>Diario Alcol</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --plum: #5D4E6D;
+      --plum-light: #7A6B8A;
+      --sage: #A8B5A0;
+      --sage-light: #C5D1BE;
+      --cream: #F8F6F2;
+      --terracotta: #C4A77D;
+      --terracotta-warm: #D4B896;
+      --coral: #E8998D;
+      --text-dark: #2D2A32;
+      --text-muted: #6B6573;
+      --green-safe: #5A9E6F;
+      --green-light: #E6F4EB;
+      --amber-warn: #C8920A;
+      --amber-light: #FEF3D0;
+      --red-risk: #C0392B;
+      --red-light: #FDECEA;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: linear-gradient(160deg, var(--cream) 0%, #EDE8E3 100%);
+      min-height: 100%;
+      color: var(--text-dark);
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior: none;
+    }
+
+    .app-container {
+      max-width: 420px;
+      margin: 0 auto;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* ── HEADER ── */
+    header {
+      padding: 20px 20px 12px;
+      animation: fadeInDown 0.6s ease both;
+    }
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .header-title {
+      font-family: 'Fraunces', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--plum);
+      line-height: 1.2;
+    }
+    .header-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .sobriety-badge {
+      background: var(--green-light);
+      color: var(--green-safe);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+      display: none;
+    }
+    .sobriety-badge.visible { display: block; }
+    .current-date {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* ── VIEWS ── */
+    .view {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      padding: 0 20px 16px;
+      animation: fadeIn 0.3s ease both;
+    }
+    .view.active { display: flex; }
+
+    /* ── HOME VIEW ── */
+    .stats-card {
+      background: white;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 2px 16px rgba(93,78,109,0.08);
+      margin-bottom: 16px;
+    }
+    .stats-card-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+    .stats-main {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+    .stats-units {
+      font-family: 'Fraunces', serif;
+      font-size: 42px;
+      font-weight: 700;
+      color: var(--plum);
+      line-height: 1;
+    }
+    .stats-units-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .semaforo {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #ddd;
+      flex-shrink: 0;
+    }
+    .semaforo.green { background: var(--green-safe); box-shadow: 0 0 0 4px var(--green-light); }
+    .semaforo.amber { background: var(--amber-warn); box-shadow: 0 0 0 4px var(--amber-light); }
+    .semaforo.red   { background: var(--red-risk);   box-shadow: 0 0 0 4px var(--red-light); }
+    .semaforo-label {
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .semaforo-label.green { color: var(--green-safe); }
+    .semaforo-label.amber { color: var(--amber-warn); }
+    .semaforo-label.red   { color: var(--red-risk); }
+    .semaforo-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .stats-drinks-count {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .progress-bar-wrap {
+      margin-top: 4px;
+    }
+    .progress-bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+    }
+    .progress-bar-bg {
+      background: #EDE8E3;
+      border-radius: 6px;
+      height: 6px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      background: var(--sage);
+      transition: width 0.4s ease, background 0.3s ease;
+    }
+    .progress-bar-fill.amber { background: var(--amber-warn); }
+    .progress-bar-fill.red   { background: var(--red-risk); }
+
+    .weekly-card {
+      background: white;
+      border-radius: 16px;
+      padding: 14px 16px;
+      box-shadow: 0 2px 12px rgba(93,78,109,0.06);
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .weekly-card-label { font-size: 12px; color: var(--text-muted); }
+    .weekly-card-value {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--plum);
+    }
+    .weekly-card-limit { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+
+    .fab {
+      width: 100%;
+      background: var(--plum);
+      color: white;
+      border: none;
+      border-radius: 18px;
+      padding: 18px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 4px 20px rgba(93,78,109,0.3);
+      margin-top: 4px;
+    }
+    .fab:active { transform: scale(0.97); box-shadow: 0 2px 10px rgba(93,78,109,0.2); }
+
+    /* ── LOG WIZARD ── */
+    .wizard-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-top: 4px;
+    }
+    .wizard-back {
+      background: none;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      padding: 4px;
+      color: var(--plum);
+    }
+    .wizard-title {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--plum);
+    }
+    .wizard-steps-dots {
+      display: flex;
+      gap: 6px;
+      margin-left: auto;
+    }
+    .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--sage-light);
+    }
+    .dot.active { background: var(--plum); }
+
+    .drink-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .drink-btn {
+      background: white;
+      border: 2px solid transparent;
+      border-radius: 16px;
+      padding: 18px 12px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 10px rgba(93,78,109,0.07);
+      transition: all 0.15s ease;
+    }
+    .drink-btn:active, .drink-btn.selected {
+      border-color: var(--plum);
+      background: #F5F2F8;
+      transform: scale(0.97);
+    }
+    .drink-btn .emoji { font-size: 30px; }
+    .drink-btn .label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-dark);
+      text-align: center;
+    }
+
+    .size-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .size-btn {
+      background: white;
+      border: 2px solid transparent;
+      border-radius: 14px;
+      padding: 14px 16px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(93,78,109,0.07);
+      transition: all 0.15s ease;
+    }
+    .size-btn:active, .size-btn.selected {
+      border-color: var(--plum);
+      background: #F5F2F8;
+    }
+    .size-btn-left { display: flex; flex-direction: column; gap: 2px; }
+    .size-btn-name { font-size: 15px; font-weight: 500; color: var(--text-dark); }
+    .size-btn-desc { font-size: 12px; color: var(--text-muted); }
+    .units-badge {
+      background: var(--plum);
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .drink-preview {
+      background: white;
+      border-radius: 14px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 2px 10px rgba(93,78,109,0.06);
+    }
+    .drink-preview-emoji { font-size: 24px; }
+    .drink-preview-text { font-size: 13px; color: var(--text-muted); }
+    .drink-preview-name { font-size: 15px; font-weight: 600; color: var(--plum); }
+
+    /* Step 3 — Contesto */
+    .context-section { margin-bottom: 18px; }
+    .context-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .chip {
+      background: white;
+      border: 2px solid #EDE8E3;
+      border-radius: 24px;
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .chip.selected {
+      border-color: var(--plum);
+      background: #F5F2F8;
+      color: var(--plum);
+    }
+    .toggle-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .toggle-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: white;
+      border-radius: 12px;
+      padding: 12px 14px;
+      cursor: pointer;
+    }
+    .toggle-item-label { font-size: 14px; color: var(--text-dark); }
+    .toggle-switch {
+      width: 42px; height: 24px;
+      background: #DDD;
+      border-radius: 12px;
+      position: relative;
+      transition: background 0.2s ease;
+      flex-shrink: 0;
+    }
+    .toggle-switch.on { background: var(--plum); }
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      width: 18px; height: 18px;
+      background: white;
+      border-radius: 50%;
+      top: 3px; left: 3px;
+      transition: transform 0.2s ease;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+    .toggle-switch.on::after { transform: translateX(18px); }
+
+    .wizard-footer {
+      display: flex;
+      gap: 10px;
+      margin-top: auto;
+      padding-top: 12px;
+    }
+    .btn-skip {
+      flex: 1;
+      background: transparent;
+      border: 2px solid #DDD;
+      border-radius: 14px;
+      padding: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-skip:active { background: #F5F5F5; }
+    .btn-save {
+      flex: 2;
+      background: var(--plum);
+      border: none;
+      border-radius: 14px;
+      padding: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: white;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 3px 12px rgba(93,78,109,0.25);
+    }
+    .btn-save:active { transform: scale(0.97); }
+
+    /* ── HISTORY VIEW ── */
+    .view-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .btn-back {
+      background: none;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      color: var(--plum);
+      padding: 4px;
+    }
+    .view-title {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--plum);
+    }
+    .history-list { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+    .history-day-group {}
+    .history-day-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .history-day-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: capitalize;
+    }
+    .history-day-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 12px;
+      background: var(--green-light);
+      color: var(--green-safe);
+    }
+    .history-day-badge.amber { background: var(--amber-light); color: var(--amber-warn); }
+    .history-day-badge.red   { background: var(--red-light);   color: var(--red-risk); }
+    .history-item {
+      background: white;
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 1px 6px rgba(93,78,109,0.06);
+      margin-bottom: 6px;
+    }
+    .history-item-emoji { font-size: 22px; flex-shrink: 0; }
+    .history-item-info { flex: 1; min-width: 0; }
+    .history-item-name { font-size: 14px; font-weight: 500; color: var(--text-dark); }
+    .history-item-meta { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+    .history-item-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+    .history-item-time { font-size: 12px; color: var(--text-muted); }
+    .history-item-units { font-size: 12px; font-weight: 600; color: var(--plum); }
+    .btn-delete {
+      background: none;
+      border: none;
+      color: var(--coral);
+      font-size: 16px;
+      cursor: pointer;
+      padding: 2px 4px;
+      opacity: 0.7;
+    }
+    .btn-delete:active { opacity: 1; }
+    .btn-export {
+      width: 100%;
+      background: white;
+      border: 2px solid var(--sage-light);
+      border-radius: 14px;
+      padding: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--plum);
+      cursor: pointer;
+      margin-top: 8px;
+      transition: all 0.15s ease;
+    }
+    .btn-export:active { background: var(--sage-light); }
+    .empty-state {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--text-muted);
+    }
+    .empty-state-icon { font-size: 40px; margin-bottom: 12px; }
+    .empty-state-text { font-size: 15px; }
+
+    /* ── CHARTS VIEW ── */
+    .chart-section { margin-bottom: 20px; }
+    .chart-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .svg-chart-wrap {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 2px 12px rgba(93,78,109,0.06);
+    }
+    .chart-stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .chart-stat-card {
+      background: white;
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 2px 10px rgba(93,78,109,0.06);
+    }
+    .chart-stat-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+    .chart-stat-value { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 600; color: var(--plum); }
+    .chart-stat-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    /* ── SETTINGS VIEW ── */
+    .settings-section { margin-bottom: 20px; }
+    .settings-section-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+    .settings-card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(93,78,109,0.06);
+    }
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid #F5F5F5;
+    }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-row-label { font-size: 14px; color: var(--text-dark); }
+    .settings-row-value { font-size: 14px; font-weight: 600; color: var(--plum); }
+    .sex-selector { display: flex; gap: 8px; }
+    .sex-btn {
+      background: #F5F2F8;
+      border: 2px solid transparent;
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.15s ease;
+    }
+    .sex-btn.selected {
+      border-color: var(--plum);
+      color: var(--plum);
+      background: white;
+    }
+    .goal-input {
+      width: 60px;
+      text-align: center;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--plum);
+      border: 2px solid var(--sage-light);
+      border-radius: 10px;
+      padding: 6px 8px;
+      background: white;
+    }
+    .btn-send {
+      width: 100%;
+      background: var(--plum);
+      border: none;
+      border-radius: 14px;
+      padding: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: white;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: all 0.15s ease;
+      box-shadow: 0 3px 12px rgba(93,78,109,0.25);
+    }
+    .btn-send:active { transform: scale(0.97); }
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 420px;
+      background: rgba(248,246,242,0.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(93,78,109,0.1);
+      display: flex;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      z-index: 100;
+    }
+    .nav-tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 10px 4px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 500;
+      transition: color 0.15s ease;
+    }
+    .nav-tab .nav-icon { font-size: 20px; line-height: 1; }
+    .nav-tab.active { color: var(--plum); }
+
+    /* ── ONBOARDING MODAL ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(45,42,50,0.7);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .modal-overlay.show { opacity: 1; pointer-events: all; }
+    .modal-sheet {
+      background: var(--cream);
+      border-radius: 24px 24px 0 0;
+      padding: 24px 24px calc(24px + env(safe-area-inset-bottom, 0px));
+      width: 100%;
+      max-width: 420px;
+      transform: translateY(40px);
+      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .modal-overlay.show .modal-sheet { transform: translateY(0); }
+    .modal-handle {
+      width: 36px; height: 4px;
+      background: #DDD;
+      border-radius: 2px;
+      margin: 0 auto 20px;
+    }
+    .modal-title {
+      font-family: 'Fraunces', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--plum);
+      margin-bottom: 8px;
+    }
+    .modal-text {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    .modal-actions { display: flex; gap: 10px; }
+    .btn-modal-confirm {
+      flex: 1;
+      background: var(--plum);
+      border: none;
+      border-radius: 14px;
+      padding: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: white;
+      cursor: pointer;
+    }
+    .btn-modal-cancel {
+      background: white;
+      border: 2px solid #EDE8E3;
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed;
+      bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--text-dark);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 24px;
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 300;
+      pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-top">
+      <div>
+        <div class="header-title">🍷 Come bevo?</div>
+        <div class="header-subtitle">un diario per capire i tuoi pattern</div>
+      </div>
+      <div id="sobrietyBadge" class="sobriety-badge"></div>
+    </div>
+    <div class="current-date" id="currentDate"></div>
+  </header>
+
+  <!-- HOME VIEW -->
+  <div id="homeView" class="view active">
+    <div class="stats-card">
+      <div class="stats-card-title">Oggi</div>
+      <div class="stats-main">
+        <div>
+          <div class="stats-units" id="statUnits">0</div>
+          <div class="stats-units-label">unità alcoliche</div>
+          <div class="stats-drinks-count" id="statDrinks"></div>
+        </div>
+        <div class="semaforo-wrap" style="margin-left:auto;">
+          <div class="semaforo" id="semaforo"></div>
+          <div class="semaforo-label" id="semaforoLabel"></div>
+        </div>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-label">
+          <span>0</span>
+          <span id="progressLimitLabel"></span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="weekly-card">
+      <div>
+        <div class="weekly-card-label">Questa settimana</div>
+        <div class="weekly-card-limit" id="weeklyLimit"></div>
+      </div>
+      <div style="text-align:right;">
+        <div class="weekly-card-value" id="statWeekly">0</div>
+        <div style="font-size:11px;color:var(--text-muted);">unità</div>
+      </div>
+    </div>
+
+    <button class="fab" onclick="showView('log1')">
+      <span>+</span> Registra una bevanda
+    </button>
+  </div>
+
+  <!-- LOG STEP 1: Tipo bevanda -->
+  <div id="log1View" class="view">
+    <div class="wizard-header">
+      <button class="wizard-back" onclick="showView('home')">←</button>
+      <div class="wizard-title">Cosa stai bevendo?</div>
+      <div class="wizard-steps-dots">
+        <div class="dot active"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+    </div>
+    <div class="drink-grid">
+      <button class="drink-btn" onclick="selectDrinkType('birra')">
+        <span class="emoji">🍺</span>
+        <span class="label">Birra</span>
+      </button>
+      <button class="drink-btn" onclick="selectDrinkType('vino_rosso')">
+        <span class="emoji">🍷</span>
+        <span class="label">Vino Rosso</span>
+      </button>
+      <button class="drink-btn" onclick="selectDrinkType('vino_bianco')">
+        <span class="emoji">🥂</span>
+        <span class="label">Vino Bianco</span>
+      </button>
+      <button class="drink-btn" onclick="selectDrinkType('prosecco')">
+        <span class="emoji">🍾</span>
+        <span class="label">Prosecco / Spumante</span>
+      </button>
+      <button class="drink-btn" onclick="selectDrinkType('aperitivo')">
+        <span class="emoji">🍹</span>
+        <span class="label">Aperitivo</span>
+      </button>
+      <button class="drink-btn" onclick="selectDrinkType('superalcolico')">
+        <span class="emoji">🥃</span>
+        <span class="label">Superalcolico</span>
+      </button>
+      <button class="drink-btn" onclick="selectDrinkType('cocktail')">
+        <span class="emoji">🍸</span>
+        <span class="label">Cocktail</span>
+      </button>
+      <button class="drink-btn" onclick="selectDrinkType('altro')">
+        <span class="emoji">🫗</span>
+        <span class="label">Altro</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- LOG STEP 2: Quantità -->
+  <div id="log2View" class="view">
+    <div class="wizard-header">
+      <button class="wizard-back" onclick="showView('log1')">←</button>
+      <div class="wizard-title">Quanto hai bevuto?</div>
+      <div class="wizard-steps-dots">
+        <div class="dot"></div>
+        <div class="dot active"></div>
+        <div class="dot"></div>
+      </div>
+    </div>
+    <div class="drink-preview" id="drinkPreview"></div>
+    <div class="size-list" id="sizeList"></div>
+  </div>
+
+  <!-- LOG STEP 3: Contesto (opzionale) -->
+  <div id="log3View" class="view">
+    <div class="wizard-header">
+      <button class="wizard-back" onclick="showView('log2')">←</button>
+      <div class="wizard-title">Come stai? <span style="font-size:13px;color:var(--text-muted);">(opzionale)</span></div>
+      <div class="wizard-steps-dots">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot active"></div>
+      </div>
+    </div>
+
+    <div class="context-section">
+      <div class="context-label">Umore</div>
+      <div class="chip-row" id="moodChips">
+        <div class="chip" data-value="sereno" onclick="selectChip(this,'mood')">😊 Sereno</div>
+        <div class="chip" data-value="stressato" onclick="selectChip(this,'mood')">😤 Stressato</div>
+        <div class="chip" data-value="triste" onclick="selectChip(this,'mood')">😢 Triste</div>
+        <div class="chip" data-value="annoiato" onclick="selectChip(this,'mood')">😴 Annoiato</div>
+        <div class="chip" data-value="festoso" onclick="selectChip(this,'mood')">🎉 Festoso</div>
+      </div>
+    </div>
+
+    <div class="context-section">
+      <div class="context-label">Contesto</div>
+      <div class="chip-row" id="contextChips">
+        <div class="chip" data-value="casa" onclick="selectChip(this,'context')">🏠 Casa</div>
+        <div class="chip" data-value="amici" onclick="selectChip(this,'context')">👥 Con amici</div>
+        <div class="chip" data-value="lavoro" onclick="selectChip(this,'context')">💼 Lavoro</div>
+        <div class="chip" data-value="ristorante" onclick="selectChip(this,'context')">🍽️ Ristorante</div>
+        <div class="chip" data-value="bar" onclick="selectChip(this,'context')">🍸 Bar</div>
+        <div class="chip" data-value="solo" onclick="selectChip(this,'context')">🚶 Solo</div>
+      </div>
+    </div>
+
+    <div class="context-section">
+      <div class="toggle-row">
+        <div class="toggle-item" onclick="toggleOption('craving')">
+          <span class="toggle-item-label">💭 Avevo voglia (craving)</span>
+          <div class="toggle-switch" id="toggleCraving"></div>
+        </div>
+        <div class="toggle-item" onclick="toggleOption('withFood')">
+          <span class="toggle-item-label">🍽️ Stomaco pieno</span>
+          <div class="toggle-switch" id="toggleWithFood"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wizard-footer">
+      <button class="btn-skip" onclick="saveDrink()">Salta</button>
+      <button class="btn-save" onclick="saveDrink()">✓ Salva</button>
+    </div>
+  </div>
+
+  <!-- HISTORY VIEW -->
+  <div id="historyView" class="view">
+    <div class="view-header">
+      <div class="view-title">Storico</div>
+    </div>
+    <div class="history-list" id="historyList"></div>
+    <button class="btn-send" onclick="sendToTherapist()">📧 Invia al terapeuta</button>
+    <button class="btn-export" onclick="exportCSV()">📥 Scarica CSV</button>
+  </div>
+
+  <!-- CHARTS VIEW -->
+  <div id="chartsView" class="view">
+    <div class="view-header">
+      <div class="view-title">Grafici</div>
+    </div>
+    <div class="chart-section">
+      <div class="chart-title">Unità alcoliche — ultimi 7 giorni</div>
+      <div class="svg-chart-wrap">
+        <svg id="weekChart" width="100%" height="160" viewBox="0 0 340 160" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+    </div>
+    <div class="chart-stats-row" id="chartStatsRow"></div>
+  </div>
+
+  <!-- SETTINGS VIEW -->
+  <div id="settingsView" class="view">
+    <div class="view-header">
+      <div class="view-title">Impostazioni</div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Profilo</div>
+      <div class="settings-card">
+        <div class="settings-row">
+          <div class="settings-row-label">Sesso biologico</div>
+          <div class="sex-selector">
+            <button class="sex-btn" id="sexMale" onclick="setSex('male')">Uomo</button>
+            <button class="sex-btn" id="sexFemale" onclick="setSex('female')">Donna</button>
+          </div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-label">Obiettivo settimanale</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <input class="goal-input" type="number" id="goalInput" min="0" max="50" onchange="setGoal(this.value)">
+            <span style="font-size:12px;color:var(--text-muted);">unità</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Informazioni</div>
+      <div class="settings-card">
+        <div class="settings-row">
+          <div class="settings-row-label" style="font-size:12px;color:var(--text-muted);line-height:1.5;">
+            1 unità alcolica = 12g di alcol puro (standard ISS)<br>
+            Soglie WHO: uomini ≤3 unità/giorno; donne ≤2 unità/giorno
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end app-container -->
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-tab active" id="navHome" onclick="showView('home')">
+    <span class="nav-icon">🏠</span>Home
+  </button>
+  <button class="nav-tab" id="navHistory" onclick="showView('history')">
+    <span class="nav-icon">📋</span>Storico
+  </button>
+  <button class="nav-tab" id="navCharts" onclick="showView('charts')">
+    <span class="nav-icon">📊</span>Grafici
+  </button>
+  <button class="nav-tab" id="navSettings" onclick="showView('settings')">
+    <span class="nav-icon">⚙️</span>Impostazioni
+  </button>
+</nav>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- MODAL: conferma eliminazione -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Eliminare?</div>
+    <div class="modal-text">Vuoi eliminare questa registrazione? L'azione non è reversibile.</div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeModal('deleteModal')">Annulla</button>
+      <button class="btn-modal-confirm" onclick="confirmDelete()" style="background:var(--red-risk);">Elimina</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: onboarding -->
+<div class="modal-overlay" id="onboardingModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Benvenuto/a 👋</div>
+    <div class="modal-text">
+      Per mostrarti le soglie raccomandate dall'OMS, ho bisogno di sapere il tuo sesso biologico. Le soglie differiscono per ragioni fisiologiche.
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:16px;">
+      <button class="sex-btn" id="onboardMale" onclick="onboardSelectSex('male')" style="flex:1;padding:14px;font-size:16px;">👨 Uomo</button>
+      <button class="sex-btn" id="onboardFemale" onclick="onboardSelectSex('female')" style="flex:1;padding:14px;font-size:16px;">👩 Donna</button>
+    </div>
+    <button class="btn-modal-confirm" id="onboardConfirm" onclick="completeOnboarding()" disabled style="width:100%;opacity:0.5;">Inizia</button>
+  </div>
+</div>
+
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════
+
+const STORAGE_KEY = 'diario_alcol_data';
+const SETTINGS_KEY = 'diario_alcol_settings';
+
+// Unità alcoliche italiane (1 unità = 12g alcol puro — standard ISS/EPICENTRO)
+// Formula: ml × (gradi/100) × 0.789 / 12
+const DRINK_UNITS = {
+  birra:        { piccola: { name: 'Birra piccola', desc: '33cl — 5%', units: 1.1 }, media: { name: 'Birra media', desc: '66cl — 5%', units: 2.2 }, doppio_malto: { name: 'Doppio malto', desc: '33cl — 7.5%', units: 1.6 } },
+  vino_rosso:   { calice: { name: 'Calice', desc: '125ml — 13.5%', units: 1.1 }, calice_g: { name: 'Calice grande', desc: '175ml — 13.5%', units: 1.6 }, bottiglia: { name: 'Bottiglia', desc: '750ml — 13.5%', units: 6.6 } },
+  vino_bianco:  { calice: { name: 'Calice', desc: '125ml — 12%', units: 1.0 }, calice_g: { name: 'Calice grande', desc: '175ml — 12%', units: 1.4 }, bottiglia: { name: 'Bottiglia', desc: '750ml — 12%', units: 5.9 } },
+  prosecco:     { flute: { name: 'Flute', desc: '125ml — 11%', units: 0.9 }, calice: { name: 'Calice', desc: '175ml — 11%', units: 1.3 }, bottiglia: { name: 'Bottiglia', desc: '750ml — 11%', units: 5.4 } },
+  aperitivo:    { piccolo: { name: 'Bicchiere', desc: '100ml — 11%', units: 0.7 }, grande: { name: 'Cocktail', desc: '200ml — 11%', units: 1.5 } },
+  superalcolico:{ dose: { name: 'Dose singola', desc: '40ml — 40%', units: 1.1 }, doppia: { name: 'Dose doppia', desc: '80ml — 40%', units: 2.1 } },
+  cocktail:     { shot: { name: 'Shot', desc: '50ml — 25%', units: 0.8 }, long: { name: 'Long drink', desc: '250ml — 8%', units: 1.3 }, strong: { name: 'Cocktail forte', desc: '100ml — 25%', units: 1.6 } },
+  altro:        { piccola: { name: 'Porzione piccola', desc: '~1 unità', units: 1.0 }, media: { name: 'Porzione media', desc: '~2 unità', units: 2.0 }, grande: { name: 'Porzione grande', desc: '~3 unità', units: 3.0 } }
+};
+
+const DRINK_EMOJI = {
+  birra: '🍺', vino_rosso: '🍷', vino_bianco: '🥂', prosecco: '🍾',
+  aperitivo: '🍹', superalcolico: '🥃', cocktail: '🍸', altro: '🫗'
+};
+
+const DRINK_LABEL = {
+  birra: 'Birra', vino_rosso: 'Vino Rosso', vino_bianco: 'Vino Bianco',
+  prosecco: 'Prosecco', aperitivo: 'Aperitivo', superalcolico: 'Superalcolico',
+  cocktail: 'Cocktail', altro: 'Altro'
+};
+
+// Soglie WHO (adattate standard ISS italiano)
+// Uomini: ≤3 unità/giorno raccomandato, ≥4 = rischio
+// Donne:  ≤2 unità/giorno raccomandato, ≥3 = rischio
+const THRESHOLDS = {
+  male:   { daily: 4, weekly: 14 },
+  female: { daily: 3, weekly:  7 }
+};
+
+// ═══════════════════════════════════════════════════════
+// STORAGE
+// ═══════════════════════════════════════════════════════
+
+function getData() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  return raw ? JSON.parse(raw) : [];
+}
+
+function saveData(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function getSettings() {
+  const raw = localStorage.getItem(SETTINGS_KEY);
+  return raw ? JSON.parse(raw) : { sex: 'male', weekly_goal: 14, onboarding_done: false };
+}
+
+function saveSettings(s) {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+}
+
+// ═══════════════════════════════════════════════════════
+// CALCULATIONS
+// ═══════════════════════════════════════════════════════
+
+function getDailyTotal(dateString) {
+  const data = getData();
+  const day = dateString || new Date().toDateString();
+  return data
+    .filter(e => new Date(e.timestamp).toDateString() === day)
+    .reduce((sum, e) => sum + (e.units || 0), 0);
+}
+
+function getWeeklyTotal() {
+  const data = getData();
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  return data
+    .filter(e => new Date(e.timestamp) >= weekAgo)
+    .reduce((sum, e) => sum + (e.units || 0), 0);
+}
+
+function getRiskLevel(units, limit) {
+  if (units === 0) return 'none';
+  if (units < limit) return 'green';
+  if (units < limit * 1.5) return 'amber';
+  return 'red';
+}
+
+function getSobrietyText() {
+  const data = getData();
+  if (data.length === 0) return null;
+  const last = data.reduce((a, b) => new Date(a.timestamp) > new Date(b.timestamp) ? a : b);
+  const diffMs = Date.now() - new Date(last.timestamp).getTime();
+  const diffH = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffD = Math.floor(diffH / 24);
+  if (diffD >= 1) return diffD === 1 ? '1 giorno libero' : `${diffD} giorni liberi`;
+  if (diffH >= 2) return `${diffH}h senza alcol`;
+  return null;
+}
+
+// ═══════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════
+
+const MAIN_VIEWS = ['home', 'history', 'charts', 'settings'];
+
+function showView(name) {
+  // hide all views
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const el = document.getElementById(name + 'View');
+  if (el) el.classList.add('active');
+
+  // update bottom nav
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  const navMap = { home: 'navHome', history: 'navHistory', charts: 'navCharts', settings: 'navSettings' };
+  if (navMap[name]) document.getElementById(navMap[name]).classList.add('active');
+
+  // render on show
+  if (name === 'home') renderHome();
+  if (name === 'history') renderHistory();
+  if (name === 'charts') renderCharts();
+  if (name === 'settings') renderSettings();
+}
+
+// ═══════════════════════════════════════════════════════
+// HOME RENDER
+// ═══════════════════════════════════════════════════════
+
+function renderHome() {
+  const s = getSettings();
+  const daily = Math.round(getDailyTotal() * 10) / 10;
+  const weekly = Math.round(getWeeklyTotal() * 10) / 10;
+  const limit = THRESHOLDS[s.sex] || THRESHOLDS.male;
+  const level = daily === 0 ? 'none' : getRiskLevel(daily, limit.daily);
+  const data = getData();
+  const todayStr = new Date().toDateString();
+  const todayCount = data.filter(e => new Date(e.timestamp).toDateString() === todayStr).length;
+
+  document.getElementById('statUnits').textContent = daily;
+  document.getElementById('statDrinks').textContent = todayCount === 0 ? '' : `${todayCount} ${todayCount === 1 ? 'bevanda' : 'bevande'}`;
+  document.getElementById('statWeekly').textContent = weekly;
+  document.getElementById('weeklyLimit').textContent = `limite: ${s.weekly_goal || limit.weekly} unità/settimana`;
+
+  const sem = document.getElementById('semaforo');
+  const semLabel = document.getElementById('semaforoLabel');
+  sem.className = 'semaforo';
+  semLabel.className = 'semaforo-label';
+  if (level === 'green') { sem.classList.add('green'); semLabel.classList.add('green'); semLabel.textContent = 'OK'; }
+  else if (level === 'amber') { sem.classList.add('amber'); semLabel.classList.add('amber'); semLabel.textContent = 'Attenzione'; }
+  else if (level === 'red') { sem.classList.add('red'); semLabel.classList.add('red'); semLabel.textContent = 'Limite'; }
+  else { semLabel.textContent = '—'; }
+
+  const pct = Math.min(100, (daily / limit.daily) * 100);
+  const bar = document.getElementById('progressBar');
+  bar.style.width = pct + '%';
+  bar.className = 'progress-bar-fill';
+  if (level === 'amber') bar.classList.add('amber');
+  if (level === 'red') bar.classList.add('red');
+  document.getElementById('progressLimitLabel').textContent = `limite: ${limit.daily} unità`;
+
+  // Sobriety badge
+  const badge = document.getElementById('sobrietyBadge');
+  const sText = getSobrietyText();
+  if (sText && daily === 0) {
+    badge.textContent = '✓ ' + sText;
+    badge.classList.add('visible');
+  } else {
+    badge.classList.remove('visible');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// LOG WIZARD STATE
+// ═══════════════════════════════════════════════════════
+
+let currentDrink = {};
+
+function selectDrinkType(type) {
+  currentDrink = { type };
+  // Populate step 2
+  const preview = document.getElementById('drinkPreview');
+  preview.innerHTML = `<span class="drink-preview-emoji">${DRINK_EMOJI[type]}</span><div><div class="drink-preview-name">${DRINK_LABEL[type]}</div><div class="drink-preview-text">Scegli la quantità</div></div>`;
+
+  const sizes = DRINK_UNITS[type];
+  const list = document.getElementById('sizeList');
+  list.innerHTML = '';
+  Object.entries(sizes).forEach(([key, info]) => {
+    const btn = document.createElement('button');
+    btn.className = 'size-btn';
+    btn.innerHTML = `<div class="size-btn-left"><div class="size-btn-name">${info.name}</div><div class="size-btn-desc">${info.desc}</div></div><div class="units-badge">${info.units} unità</div>`;
+    btn.onclick = () => selectDrinkSize(key, info.units);
+    list.appendChild(btn);
+  });
+
+  showView('log2');
+}
+
+function selectDrinkSize(size, units) {
+  currentDrink.size = size;
+  currentDrink.units = units;
+  // Reset step 3
+  document.querySelectorAll('#log3View .chip').forEach(c => c.classList.remove('selected'));
+  document.getElementById('toggleCraving').className = 'toggle-switch';
+  document.getElementById('toggleWithFood').className = 'toggle-switch';
+  currentDrink.mood = null;
+  currentDrink.context = null;
+  currentDrink.craving = false;
+  currentDrink.with_food = false;
+  showView('log3');
+}
+
+function selectChip(el, field) {
+  const row = field === 'mood' ? document.getElementById('moodChips') : document.getElementById('contextChips');
+  row.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  currentDrink[field] = el.dataset.value;
+}
+
+function toggleOption(field) {
+  if (field === 'craving') {
+    currentDrink.craving = !currentDrink.craving;
+    document.getElementById('toggleCraving').className = 'toggle-switch' + (currentDrink.craving ? ' on' : '');
+  } else {
+    currentDrink.with_food = !currentDrink.with_food;
+    document.getElementById('toggleWithFood').className = 'toggle-switch' + (currentDrink.with_food ? ' on' : '');
+  }
+}
+
+function saveDrink() {
+  if (!currentDrink.type || !currentDrink.size) return;
+  const entry = {
+    id: Date.now(),
+    timestamp: new Date().toISOString(),
+    drink_type: currentDrink.type,
+    drink_size: currentDrink.size,
+    units: currentDrink.units,
+    mood: currentDrink.mood || null,
+    context: currentDrink.context || null,
+    craving: currentDrink.craving || false,
+    with_food: currentDrink.with_food || false
+  };
+  const data = getData();
+  data.push(entry);
+  saveData(data);
+
+  const s = getSettings();
+  const newDaily = getDailyTotal();
+  const limit = THRESHOLDS[s.sex] || THRESHOLDS.male;
+
+  showView('home');
+  currentDrink = {};
+
+  if (newDaily >= limit.daily) {
+    showToast(`⚠️ ${entry.units} unità registrate · limite giornaliero raggiunto`);
+  } else {
+    showToast(`${DRINK_EMOJI[entry.drink_type]} Registrato · ${entry.units} unità`);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// HISTORY
+// ═══════════════════════════════════════════════════════
+
+function renderHistory() {
+  const data = getData();
+  const list = document.getElementById('historyList');
+  list.innerHTML = '';
+
+  if (data.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🫙</div><div class="empty-state-text">Nessuna registrazione ancora</div></div>';
+    return;
+  }
+
+  const grouped = {};
+  data.forEach(e => {
+    const day = new Date(e.timestamp).toDateString();
+    if (!grouped[day]) grouped[day] = [];
+    grouped[day].push(e);
+  });
+
+  const s = getSettings();
+  const limit = THRESHOLDS[s.sex] || THRESHOLDS.male;
+
+  Object.keys(grouped)
+    .sort((a, b) => new Date(b) - new Date(a))
+    .forEach(day => {
+      const entries = grouped[day];
+      const dayTotal = Math.round(entries.reduce((sum, e) => sum + (e.units || 0), 0) * 10) / 10;
+      const level = getRiskLevel(dayTotal, limit.daily);
+
+      const group = document.createElement('div');
+      group.className = 'history-day-group';
+
+      const header = document.createElement('div');
+      header.className = 'history-day-header';
+      const dateLabel = new Date(day).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
+      const badgeCls = level === 'green' ? '' : level === 'amber' ? ' amber' : level === 'red' ? ' red' : '';
+      header.innerHTML = `<div class="history-day-label">${dateLabel}</div><div class="history-day-badge${badgeCls}">${dayTotal} unità</div>`;
+      group.appendChild(header);
+
+      entries
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+        .forEach(entry => {
+          const item = document.createElement('div');
+          item.className = 'history-item';
+          const time = new Date(entry.timestamp).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+          const sizeInfo = DRINK_UNITS[entry.drink_type]?.[entry.drink_size];
+          const sizeName = sizeInfo ? sizeInfo.name : entry.drink_size;
+          const meta = [entry.mood, entry.context].filter(Boolean).join(' · ');
+          item.innerHTML = `
+            <span class="history-item-emoji">${DRINK_EMOJI[entry.drink_type] || '🫗'}</span>
+            <div class="history-item-info">
+              <div class="history-item-name">${DRINK_LABEL[entry.drink_type] || entry.drink_type} — ${sizeName}</div>
+              ${meta ? `<div class="history-item-meta">${meta}</div>` : ''}
+            </div>
+            <div class="history-item-right">
+              <span class="history-item-time">${time}</span>
+              <span class="history-item-units">${entry.units} u.</span>
+              <button class="btn-delete" onclick="openDeleteModal(${entry.id})">✕</button>
+            </div>`;
+          group.appendChild(item);
+        });
+
+      list.appendChild(group);
+    });
+}
+
+let pendingDeleteId = null;
+
+function openDeleteModal(id) {
+  pendingDeleteId = id;
+  document.getElementById('deleteModal').classList.add('show');
+}
+
+function confirmDelete() {
+  if (pendingDeleteId) {
+    let data = getData().filter(e => e.id !== pendingDeleteId);
+    saveData(data);
+    pendingDeleteId = null;
+    renderHistory();
+    renderHome();
+    showToast('Registrazione eliminata');
+  }
+  closeModal('deleteModal');
+}
+
+// ═══════════════════════════════════════════════════════
+// CHARTS
+// ═══════════════════════════════════════════════════════
+
+function renderCharts() {
+  const svg = document.getElementById('weekChart');
+  const s = getSettings();
+  const limit = THRESHOLDS[s.sex] || THRESHOLDS.male;
+  const W = 340, H = 160, padL = 24, padR = 8, padT = 10, padB = 28;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+
+  // Last 7 days
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    days.push(d);
+  }
+
+  const totals = days.map(d => getDailyTotal(d.toDateString()));
+  const maxVal = Math.max(...totals, limit.daily * 1.2, 1);
+  const barW = Math.floor(chartW / 7) - 4;
+  const dayLabels = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
+
+  let svgContent = '';
+
+  // Grid line at limit
+  const limitY = padT + chartH - (limit.daily / maxVal) * chartH;
+  svgContent += `<line x1="${padL}" y1="${limitY}" x2="${W - padR}" y2="${limitY}" stroke="#C0392B" stroke-width="1" stroke-dasharray="4,3" opacity="0.5"/>`;
+  svgContent += `<text x="${W - padR - 2}" y="${limitY - 3}" font-size="9" fill="#C0392B" text-anchor="end" opacity="0.7">limite</text>`;
+
+  // Bars
+  totals.forEach((val, i) => {
+    const x = padL + i * (chartW / 7) + 2;
+    const barH = val === 0 ? 0 : Math.max(3, (val / maxVal) * chartH);
+    const y = padT + chartH - barH;
+    const level = getRiskLevel(val, limit.daily);
+    const color = level === 'red' ? '#C0392B' : level === 'amber' ? '#C8920A' : '#5A9E6F';
+    const opacity = i === 6 ? '1' : '0.7';
+    svgContent += `<rect x="${x}" y="${y}" width="${barW}" height="${barH}" rx="4" fill="${color}" opacity="${opacity}"/>`;
+
+    const dayLabel = dayLabels[days[i].getDay() === 0 ? 6 : days[i].getDay() - 1];
+    const isToday = i === 6;
+    svgContent += `<text x="${x + barW / 2}" y="${H - 6}" font-size="10" fill="${isToday ? '#5D4E6D' : '#6B6573'}" text-anchor="middle" font-weight="${isToday ? '600' : '400'}">${dayLabel}</text>`;
+
+    if (val > 0) {
+      svgContent += `<text x="${x + barW / 2}" y="${y - 3}" font-size="9" fill="${color}" text-anchor="middle">${Math.round(val * 10) / 10}</text>`;
+    }
+  });
+
+  // Y axis label
+  svgContent += `<text x="${padL - 2}" y="${padT + chartH}" font-size="9" fill="#6B6573" text-anchor="middle">0</text>`;
+
+  svg.innerHTML = svgContent;
+
+  // Stats cards
+  const data = getData();
+  const weeklyTotal = Math.round(getWeeklyTotal() * 10) / 10;
+  const daysWithDrinks = totals.filter(t => t > 0).length;
+  const drinkCounts = {};
+  data.forEach(e => { drinkCounts[e.drink_type] = (drinkCounts[e.drink_type] || 0) + 1; });
+  const favDrink = Object.keys(drinkCounts).sort((a, b) => drinkCounts[b] - drinkCounts[a])[0];
+  const avgDaily = daysWithDrinks > 0 ? Math.round((weeklyTotal / daysWithDrinks) * 10) / 10 : 0;
+
+  document.getElementById('chartStatsRow').innerHTML = `
+    <div class="chart-stat-card">
+      <div class="chart-stat-label">Settimana corrente</div>
+      <div class="chart-stat-value">${weeklyTotal}</div>
+      <div class="chart-stat-sub">unità totali</div>
+    </div>
+    <div class="chart-stat-card">
+      <div class="chart-stat-label">Media (giorni con consumo)</div>
+      <div class="chart-stat-value">${avgDaily}</div>
+      <div class="chart-stat-sub">unità/giorno</div>
+    </div>
+    <div class="chart-stat-card">
+      <div class="chart-stat-label">Giorni con consumo</div>
+      <div class="chart-stat-value">${daysWithDrinks}/7</div>
+      <div class="chart-stat-sub">ultima settimana</div>
+    </div>
+    <div class="chart-stat-card">
+      <div class="chart-stat-label">Bevanda preferita</div>
+      <div class="chart-stat-value">${favDrink ? DRINK_EMOJI[favDrink] : '—'}</div>
+      <div class="chart-stat-sub">${favDrink ? DRINK_LABEL[favDrink] : 'nessun dato'}</div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════════════════
+
+function renderSettings() {
+  const s = getSettings();
+  document.getElementById('sexMale').className = 'sex-btn' + (s.sex === 'male' ? ' selected' : '');
+  document.getElementById('sexFemale').className = 'sex-btn' + (s.sex === 'female' ? ' selected' : '');
+  const limit = THRESHOLDS[s.sex] || THRESHOLDS.male;
+  document.getElementById('goalInput').value = s.weekly_goal || limit.weekly;
+
+}
+
+function setSex(sex) {
+  const s = getSettings();
+  s.sex = sex;
+  s.weekly_goal = THRESHOLDS[sex].weekly;
+  saveSettings(s);
+  renderSettings();
+  renderHome();
+}
+
+function setGoal(val) {
+  const s = getSettings();
+  s.weekly_goal = parseFloat(val) || (THRESHOLDS[s.sex] || THRESHOLDS.male).weekly;
+  saveSettings(s);
+  renderHome();
+}
+
+
+// ═══════════════════════════════════════════════════════
+// ONBOARDING
+// ═══════════════════════════════════════════════════════
+
+let onboardSex = null;
+
+function onboardSelectSex(sex) {
+  onboardSex = sex;
+  document.getElementById('onboardMale').className = 'sex-btn' + (sex === 'male' ? ' selected' : '');
+  document.getElementById('onboardFemale').className = 'sex-btn' + (sex === 'female' ? ' selected' : '');
+  const btn = document.getElementById('onboardConfirm');
+  btn.disabled = false;
+  btn.style.opacity = '1';
+}
+
+function completeOnboarding() {
+  if (!onboardSex) return;
+  const s = getSettings();
+  s.sex = onboardSex;
+  s.weekly_goal = THRESHOLDS[onboardSex].weekly;
+  s.onboarding_done = true;
+  saveSettings(s);
+  closeModal('onboardingModal');
+  renderHome();
+}
+
+// ═══════════════════════════════════════════════════════
+// MODAL HELPERS
+// ═══════════════════════════════════════════════════════
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+// ═══════════════════════════════════════════════════════
+// EXPORT CSV
+// ═══════════════════════════════════════════════════════
+
+function exportCSV() {
+  const data = getData();
+  if (data.length === 0) { showToast('Nessun dato da esportare'); return; }
+
+  const s = getSettings();
+  const sorted = [...data].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  let csv = 'Data,Ora,Tipo,Dimensione,Unità,Umore,Contesto,Craving,Stomaco_pieno\n';
+  sorted.forEach(e => {
+    const d = new Date(e.timestamp);
+    const dateStr = d.toLocaleDateString('it-IT');
+    const timeStr = d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    const sizeInfo = DRINK_UNITS[e.drink_type]?.[e.drink_size];
+    const sizeName = sizeInfo ? sizeInfo.name : (e.drink_size || '');
+    csv += `${dateStr},${timeStr},${DRINK_LABEL[e.drink_type] || e.drink_type},${sizeName},${e.units},${e.mood || ''},${e.context || ''},${e.craving ? 'sì' : 'no'},${e.with_food ? 'sì' : 'no'}\n`;
+  });
+
+  // Summary block
+  const totalUnits = Math.round(data.reduce((s, e) => s + (e.units || 0), 0) * 10) / 10;
+  const days = new Set(data.map(e => new Date(e.timestamp).toDateString()));
+  const daysWith = days.size;
+  const avgPerDay = daysWith > 0 ? Math.round((totalUnits / daysWith) * 10) / 10 : 0;
+  const limit = THRESHOLDS[s.sex] || THRESHOLDS.male;
+
+  csv += `\n--- RIEPILOGO ---\n`;
+  csv += `Totale unità,${totalUnits}\n`;
+  csv += `Media unità/giorno (giorni con consumo),${avgPerDay}\n`;
+  csv += `Giorni con consumo,${daysWith}\n`;
+  csv += `Limite giornaliero (${s.sex === 'female' ? 'donna' : 'uomo'}),${limit.daily}\n`;
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `diario_alcol_${new Date().toISOString().split('T')[0]}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  showToast('📥 CSV scaricato');
+}
+
+// ═══════════════════════════════════════════════════════
+// INVIA AL TERAPEUTA
+// ═══════════════════════════════════════════════════════
+
+const THERAPIST_EMAIL = 'guidoricci.lavoro@gmail.com';
+
+async function sendToTherapist() {
+  const data = getData();
+  if (data.length === 0) { showToast('Nessun dato da inviare'); return; }
+
+  const s = getSettings();
+  const sorted = [...data].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  const filename = `diario_alcol_${new Date().toISOString().split('T')[0]}.csv`;
+
+  // Costruisci CSV
+  let csv = 'Data,Ora,Tipo,Dimensione,Unità,Umore,Contesto,Craving,Stomaco_pieno\n';
+  sorted.forEach(e => {
+    const d = new Date(e.timestamp);
+    const dateStr = d.toLocaleDateString('it-IT');
+    const timeStr = d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    const sizeInfo = DRINK_UNITS[e.drink_type]?.[e.drink_size];
+    const sizeName = sizeInfo ? sizeInfo.name : (e.drink_size || '');
+    csv += `${dateStr},${timeStr},${DRINK_LABEL[e.drink_type] || e.drink_type},${sizeName},${e.units},${e.mood || ''},${e.context || ''},${e.craving ? 'sì' : 'no'},${e.with_food ? 'sì' : 'no'}\n`;
+  });
+  const totalUnits = Math.round(data.reduce((sum, e) => sum + (e.units || 0), 0) * 10) / 10;
+  const days = new Set(data.map(e => new Date(e.timestamp).toDateString()));
+  const avgPerDay = days.size > 0 ? Math.round((totalUnits / days.size) * 10) / 10 : 0;
+  csv += `\n--- RIEPILOGO ---\nTotale unità,${totalUnits}\nMedia unità/giorno,${avgPerDay}\nGiorni con consumo,${days.size}\n`;
+
+  // Prova Web Share API (mobile — allega il file CSV)
+  if (navigator.canShare) {
+    const file = new File([csv], filename, { type: 'text/csv' });
+    if (navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: 'Diario Alcol',
+          text: `Diario alcol — ${new Date().toLocaleDateString('it-IT')}`
+        });
+        return;
+      } catch (e) {
+        if (e.name === 'AbortError') return; // utente ha annullato
+      }
+    }
+  }
+
+  // Fallback: mailto con riepilogo nel corpo
+  const subject = encodeURIComponent(`Diario Alcol — ${new Date().toLocaleDateString('it-IT')}`);
+  const firstDate = new Date(sorted[0].timestamp).toLocaleDateString('it-IT');
+  const lastDate = new Date(sorted[sorted.length - 1].timestamp).toLocaleDateString('it-IT');
+  const body = encodeURIComponent(
+    `Caro dottore,\n\nti invio il mio diario di consumo alcolico.\n\nPeriodo: ${firstDate} – ${lastDate}\nTotale unità: ${totalUnits}\nMedia giornaliera: ${avgPerDay} unità\nGiorni con consumo: ${days.size}\n\nTrovi i dati dettagliati nel file CSV allegato (scaricabile dal pulsante "Scarica CSV" nell'app).\n\nCordiali saluti`
+  );
+  window.open(`mailto:${THERAPIST_EMAIL}?subject=${subject}&body=${body}`, '_blank');
+  showToast('📧 Email aperta — allega il CSV scaricato');
+}
+
+// ═══════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Date display
+  document.getElementById('currentDate').textContent =
+    new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+  renderHome();
+
+  // Onboarding
+  const s = getSettings();
+  if (!s.onboarding_done) {
+    setTimeout(() => document.getElementById('onboardingModal').classList.add('show'), 400);
+  }
+
+  // Close modals on overlay click
+  ['deleteModal', 'onboardingModal'].forEach(id => {
+    document.getElementById(id).addEventListener('click', e => {
+      if (e.target.id === id) closeModal(id);
+    });
+  });
+
+  // Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/diario-alcol/sw.js', { scope: '/diario-alcol/' })
+      .catch(() => {});
+  }
+});
+</script>
+</body>
+</html>

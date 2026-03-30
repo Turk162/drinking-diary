@@ -1,0 +1,25 @@
+{
+  "name": "Diario Alcol",
+  "short_name": "Diario Alcol",
+  "description": "Monitora il tuo consumo di alcol e comprendi i tuoi pattern",
+  "start_url": "/diario-alcol/index.html",
+  "scope": "/diario-alcol/",
+  "display": "standalone",
+  "background_color": "#F8F6F2",
+  "theme_color": "#5D4E6D",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/diario-alcol/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/diario-alcol/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
