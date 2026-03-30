@@ -771,6 +771,45 @@
     }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+    /* ── DATE PICKER ── */
+    .date-selector {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: white;
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 6px rgba(93,78,109,0.07);
+    }
+    .date-selector-label { font-size: 13px; color: var(--text-muted); flex-shrink: 0; }
+    .date-input {
+      border: none;
+      background: transparent;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--plum);
+      flex: 1;
+      cursor: pointer;
+      min-width: 0;
+    }
+    .date-input:focus { outline: none; }
+    .date-today-btn {
+      background: var(--sage-light);
+      border: none;
+      border-radius: 16px;
+      padding: 4px 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--plum);
+      cursor: pointer;
+      white-space: nowrap;
+      display: none;
+    }
+    .date-today-btn.visible { display: block; }
+
     /* ── INSTALL BANNER ── */
     .install-banner {
       margin: 0 20px 12px;
@@ -903,6 +942,11 @@
         <div class="dot"></div>
         <div class="dot"></div>
       </div>
+    </div>
+    <div class="date-selector">
+      <span class="date-selector-label">📅 Quando?</span>
+      <input class="date-input" type="date" id="drinkDate" onchange="onDateChange()">
+      <button class="date-today-btn" id="dateTodayBtn" onclick="resetToToday()">Oggi</button>
     </div>
     <div class="drink-grid">
       <button class="drink-btn" onclick="selectDrinkType('birra')">
@@ -1244,6 +1288,7 @@ function showView(name) {
   if (name === 'history') renderHistory();
   if (name === 'charts') renderCharts();
   if (name === 'settings') renderSettings();
+  if (name === 'log1') initDatePicker();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1299,6 +1344,29 @@ function renderHome() {
 
 let currentDrink = {};
 
+function todayISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function initDatePicker() {
+  const input = document.getElementById('drinkDate');
+  input.value = todayISO();
+  input.max = todayISO();
+  document.getElementById('dateTodayBtn').classList.remove('visible');
+}
+
+function onDateChange() {
+  const val = document.getElementById('drinkDate').value;
+  const btn = document.getElementById('dateTodayBtn');
+  btn.classList.toggle('visible', val !== todayISO());
+}
+
+function resetToToday() {
+  document.getElementById('drinkDate').value = todayISO();
+  document.getElementById('dateTodayBtn').classList.remove('visible');
+}
+
 function selectDrinkType(type) {
   currentDrink = { type };
   // Populate step 2
@@ -1350,11 +1418,19 @@ function toggleOption(field) {
   }
 }
 
+function buildTimestamp() {
+  const dateVal = document.getElementById('drinkDate').value;
+  const today = todayISO();
+  if (!dateVal || dateVal === today) return new Date().toISOString();
+  // Per date passate usa mezzogiorno come orario (neutro)
+  return new Date(dateVal + 'T12:00:00').toISOString();
+}
+
 function saveDrink() {
   if (!currentDrink.type || !currentDrink.size) return;
   const entry = {
     id: Date.now(),
-    timestamp: new Date().toISOString(),
+    timestamp: buildTimestamp(),
     drink_type: currentDrink.type,
     drink_size: currentDrink.size,
     units: currentDrink.units,
@@ -1374,8 +1450,13 @@ function saveDrink() {
   showView('home');
   currentDrink = {};
 
-  if (newDaily >= limit.daily) {
+  const dateVal = document.getElementById('drinkDate').value;
+  const isPast = dateVal && dateVal !== todayISO();
+  if (newDaily >= limit.daily && !isPast) {
     showToast(`⚠️ ${entry.units} unità registrate · limite giornaliero raggiunto`);
+  } else if (isPast) {
+    const d = new Date(dateVal + 'T12:00:00').toLocaleDateString('it-IT', { day: 'numeric', month: 'long' });
+    showToast(`${DRINK_EMOJI[entry.drink_type]} Registrato per il ${d}`);
   } else {
     showToast(`${DRINK_EMOJI[entry.drink_type]} Registrato · ${entry.units} unità`);
   }
